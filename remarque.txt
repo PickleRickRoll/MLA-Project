@@ -12,3 +12,33 @@ On a donc des données sous format temps en abscisses et fréquences en ordonné
 
 Pour éviter de confondre une note et une harmonique (une note une octave plus haut par exemple), on précise la hauteur/on définit un intervalle d'une octave en ajoutant un demi-ton en plus. Cela permet d'éviter de confondre
 
+
+
+ali partie experiments
+------------------------
+NMP : notes and multipitch
+MPE : multi pitch estimation
+AMT : automatic music transcription
+
+metrix proposed for evaluation come from : MIREX : Music Information Retrieval Evaluation eXchange
+
+
+more info : https://en.wikipedia.org/wiki/International_Society_for_Music_Information_Retrieval
+	https://www.music-ir.org/mirex/wiki/2005:Main_Page
+
+
+3 criteres de test , ou d'experimentation : F , Fno , Acc
+
+F: measure F : notes are considered correct if the pitch is within a quarter tone, the onset is within 50 ms, and the offset is within 20% of the note’s duration,
+
+Fno: F measure no offset : considered the main measure ( like F measure but with no offset)
+
+Acc : frame level note accuracy : computed for frames with a hop size of 10 ms
+
+
+These metrics can be found from a python librairy , links : https://brianmcfee.net/papers/ismir2014_mireval.pdf
+
+
+
+
+
