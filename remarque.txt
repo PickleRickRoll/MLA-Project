@@ -1,0 +1,14 @@
+#Remarques sur la partie Modèle
+ on veut travailler sur de la polyphonie : donc plusieurs voix/instruments/notes en même temps
+
+Constant Q transform (CQT): c'est comme une transformée de fourier : va changer dans un espace de fréquences, mais cette fois on mets dans une échelle log pour avoir un rendu linéaire qui est plus visuel.
+En gros chaque bin (intervalle) de frequency sera à la même échelle, bien que les fréquences se rapprochent de plus en plus
+
+HCQT : pour simplifier les calculs et la taille du modèle, normalement on a une 3ème dimension où on mets les harmoniques. (x2, ...x7 de la fréquence principale et x0.5 sous-harmonique pour les basses)
+cette fois on les shift de retour dans une 2ème dimension mais à la verticale. 
+
+(les posteriorgrams)
+On a donc des données sous format temps en abscisses et fréquences en ordonnées avec les plusieurs harmoniques (si j'ai bien compris)
+
+Pour éviter de confondre une note et une harmonique (une note une octave plus haut par exemple), on précise la hauteur/on définit un intervalle d'une octave en ajoutant un demi-ton en plus. Cela permet d'éviter de confondre
+
