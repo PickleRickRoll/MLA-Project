@@ -16,29 +16,225 @@ Pour éviter de confondre une note et une harmonique (une note une octave plus h
 
 ali partie experiments
 ------------------------
+
+
+#############
+#Section 4.0#
+#############
+
+
 NMP : notes and multipitch
 MPE : multi pitch estimation
 AMT : automatic music transcription
 
-metrix proposed for evaluation come from : MIREX : Music Information Retrieval Evaluation eXchange
+Metrix proposed for evaluation comes from : MIREX : Music Information Retrieval Evaluation eXchange
 
 
 more info : https://en.wikipedia.org/wiki/International_Society_for_Music_Information_Retrieval
-	https://www.music-ir.org/mirex/wiki/2005:Main_Page
+	    https://www.music-ir.org/mirex/wiki/2005:Main_Page
 
 
 3 criteres de test , ou d'experimentation : F , Fno , Acc
+----------------------------------------------------------
+F: measure F : notes are considered correct if :
 
-F: measure F : notes are considered correct if the pitch is within a quarter tone, the onset is within 50 ms, and the offset is within 20% of the note’s duration,
+	Pitch is within a quarter tone.
+	Onset is within 50 ms.
+	Offset is within 20% of the note’s duration.
+
 
 Fno: F measure no offset : considered the main measure ( like F measure but with no offset)
 
 Acc : frame level note accuracy : computed for frames with a hop size of 10 ms
 
-
+outils
+-------------
 These metrics can be found from a python librairy , links : https://brianmcfee.net/papers/ismir2014_mireval.pdf
 
 
+Metric Computation: Done using the mir_eval Python library.
+Parameter Optimization: Fine-tunes τnτn​ (note creation parameter) on the validation dataset to maximize Fno.(??????)
 
+Training
+----------
+Training/Validation Split: Random 5% of tracks from training set used for validation.
+Library: Data managed using mirdata.
+
+Notes:
+
+Slakh: De-duplicated “redux” version; tests on an instrument-balanced subset of 120 stems with minimal silence.
+MedleyDB & iKala: Notes annotated using pyin-notes; MedleyDB audio from pitch-tracking subset, iKala audio uses isolated vocals.
+Phenicx: 42 instrumental section-grouped stems (e.g., violins, bassoons) with corresponding annotations.
+
+link data sets
+----------------
+https://zenodo.org/records/5557945
+
+Molina:		  https://zenodo.org/records/1417729 (https://www.upf.edu/web/mtg/mtg-qbh /)
+Guitar set :	  https://zenodo.org/records/3371780
+MAESTRO Dataset:  https://magenta.tensorflow.org/datasets/maestro
+Slakh:		  http://www.slakh.com/#download
+phenicx:	  N/A
+iKala:		  https://paperswithcode.com/dataset/ikala (Not available anymore)
+Medley DB :       https://medleydb.weebly.com/
+
+
+#############
+#Section 4.1#
+#############
+
+Baseline Model
+---------------
+MI-AMT
+
+Polyphonic, instrument-agnostic note estimation method using a U-Net architecture with attention.
+Outputs note-activation posteriorgrams (over 20M parameters).(???)
+Trained on MAESTRO and MusicNet datasets, with post-processing to create note events.
+
+Comparaison
+------------
+Labels: (N) Notes, (P) Multi-pitch.
+Polyphony: Mono/Polyphonic.
+
+Proposed Method: NMP:
+
+    Outperforms MI-AMT across most datasets and metrics.
+    Strong performance for both polyphonic (e.g., MAESTRO, Slakh) and monophonic (e.g., Molina) datasets.
+    Consistent results across instrument types without requiring instrument-specific tuning.
+
+NMP generally achieves higher Acc and Fno scores across all datasets compared to MI-AMT.
+Exception: Similar performance in Acc for MAESTRO (piano) and Slakh (synthesizers).
+Ablation experiments (NMP - P, NMP - H) show slight performance drops but remain competitive.
+
+#############
+#Section 4.2#
+#############
+
+Harmonic Stacking
+-----------------
+Harmonic stacking is a preprocessing technique used in signal processing, particularly for audio tasks like Automatic Music Transcription (AMT). The idea is to enhance the input features by including information that represents harmonic relationships in the audio signal.
+
+What it does:
+    Harmonic stacking creates additional channels in the input representation that emphasize harmonic frequencies of the fundamental pitch in the signal. For instance, if a note produces a fundamental frequency f0, the stacking might include multiples of this frequency (2f0​, 3f0, etc.), which correspond to its overtones or harmonics.
+
+Purpose:
+        Enables smaller convolutional kernels to process information effectively.
+        Helps the model understand harmonic structures without requiring a large receptive field.
+        Reduces reliance on the model's learning capacity to "discover" these relationships.
+
+Experiment: Model trained without the harmonic stacking layer.
+
+Results:
+
+    Significant performance reduction across all metrics and datasets due to the model's smaller receptive field.
+    Confirmed the importance of harmonic stacking for maintaining model capacity and performance
+
+
+
+Effect of Yp
+--------------
+
+Yp​ is a supervised bottleneck layer in the model architecture. A bottleneck layer is a narrow part of the network that constrains the flow of information, encouraging the model to learn compact and meaningful representations.
+
+What is Yp​:
+    Yp​ is an intermediate representation in the model, providing outputs related to certain aspects of the input (e.g., pitch-related features). It’s trained with its own supervision (labels), making it a supervised bottleneck layer.
+
+Why it’s important:
+        Improves pitch identification: Yp​ enhances the model's ability to focus on pitch-related features by adding a supervised constraint during training.
+        Aids expressivity: Provides additional outputs that include details about note ornamentation or musical expression, which might not be captured directly in the final note predictions (Yn).
+        Acts as a feature extractor: Helps the model learn intermediate features that are useful for downstream tasks.
+
+Experiment: YpYp​ supervision removed; YnYn​ adjusted to output directly from preceding convolutional layers without intermediate processing (Batch Norm → ReLU → Conv2D layers omitted).
+
+
+Results:
+
+    Improved Accuracy (Acc): Consistently higher across all datasets with YpYp​.
+    Mixed Effects on Fno and F:
+        No significant differences for GuitarSet, Slakh, and Phenicx.
+        Slight improvement for MAESTRO.
+        Slight degradation for Molina.
+
+Conclusion:
+        YpYp​ supervision aids in identifying note pitches, even if neutral for onset/offset detection.
+        Provides additional outputs containing ornamentation and expressivity details.
+
+
+
+
+#############
+#Section 4.3#
+#############
+
+Comparison with instrument-specific models
+-----------------------------------------
+# Models:
+
+Vocano (for vocals): Separates vocal sources, extracts pitch, and segments notes using neural networks trained on solo vocals.
+
+TENT (for guitar): Focuses on melody contour extraction and playing techniques like slides and bends using CNNs.
+
+Onsets and Frames (OF) (for piano): A state-of-the-art polyphonic piano transcription model trained on the MAESTRO dataset.
+
+Results
+---------
+Vocals (Molina): Vocano outperforms NMP in note metrics (Fno, F), but NMP achieves comparable frame-level accuracy (Acc).
+
+Guitar (GuitarSet Solo): NMP outperforms TENT across all metrics, achieving state-of-the-art results.
+
+Piano (MAESTRO): Onsets and Frames outperforms NMP significantly in Fno (95.2% vs. 70.9%), mainly due to better onset detection.
+
+#############
+#Section 4.4#
+#############
+
+MPE Basleine Compariaosn
+------------------------
+
+# Datasets Used:
+
+Bach10: A dataset of 10 recordings of polyphonic Western classical chamber music.
+Su: Another dataset with similar characteristics, containing 10 recordings.
+
+# Baseline Model: Deep Salience: A strong MPE baseline model 
+
+
+# Results:
+
+    On Bach10, NMP outperforms Deep Salience with a frame-level accuracy of 72.5 ± 3.8% compared to 55.7 ± 2.9% for Deep Salience.
+    On Su, Deep Salience performs better (43.6 ± 7.9%) compared to NMP (37.7 ± 15.4%).
+
+#Notes:
+
+The supervised bottleneck layer Yp in NMP seems to capture meaningful multi-pitch estimation (MPE) information, which contributes to competitive results even without specific training for multi-instrument mixtures.
+
+NMP’s 3-bin-per-semitone resolution posteriorgrams can estimate continuous multi-pitch values by leveraging amplitude information from the f0 bin and its neighboring bins.(???)
+
+#############
+#Section 4.5#
+#############
+
+Efficiency
+-----------
+Files Used:
+        A short file (0.35 seconds of white noise) for overhead approximation.
+        A long file (7 minutes 45 seconds) from the Slakh dataset for realistic evaluation.
+    Preprocessing: Audio resampled to the expected sampling rate for each method.
+
+Results:
+
+    Short File (Overhead Measurement):
+        NMP: Peak memory: 490 MB, Time: 7 seconds.
+        MI-AMT: Peak memory: 561 MB, Time: 10 seconds.
+
+    Long File (Realistic Evaluation):
+        NMP: Peak memory: 951 MB, Time: 24 seconds.
+        MI-AMT: Peak memory: 3.3 GB, Time: 96 seconds.
+
+    Comparison with Instrument-Specific Models:
+        Onsets and Frames (OF): Peak memory: 5.4 GB.
+        Vocano: Peak memory: 8.5 GB.
+
+end
 
 
