@@ -41,24 +41,26 @@ def model_v1(input_shape, n_harmonics: int = 8,
       ###############################################################
 
     # First convolutional block (to extract multipitch posteriorgram Yp)
-    x = Conv2D(32, (5, 5), padding='same', activation='relu')(inputs)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = Conv2D(8, (3, 3*13), padding='same', activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
+    x_frame = Conv2D(32, (5, 5), padding='same', activation='relu')(x)
+    x_frame = BatchNormalization()(x_frame)
+    x_frame = ReLU()(x_frame)
+    x_frame = Conv2D(8, (3, 3*13), padding='same', activation='relu')(x_frame)
+    x_frame = BatchNormalization()(x_frame)
+    x_frame = ReLU()(x_frame)
 
     # Output multipitch posteriorgram Yp
-    Yp = Conv2D(1, (5, 5), padding='same', activation='sigmoid', name='multipitch')(x)
+    Yp = Conv2D(1, (5, 5), padding='same', activation='sigmoid', name='multipitch')(x_frame)
 
     # Second block (to extract note posteriorgram Yn using Yp)
-    x = Conv2D(32, (7, 7), padding='same', activation='relu', strides=(1,3))(Yp)
-    x = ReLU()(x)
-    Yn = Conv2D(1, (7, 3), padding='same', activation='sigmoid', name='note')(x)
+    x_note = Conv2D(32, (7, 7), padding='same', activation='relu', strides=(1,3))(Yp)
+    x_note = ReLU()(x_note)
+    Yn = Conv2D(1, (7, 3), padding='same', activation='sigmoid', name='note')(x_note)
 
     # Third block (to extract onset posteriorgram Yo using audio features and Yn)
     x_audio = Conv2D(32, (3, 3), padding='same', activation='relu')(inputs)
     x_audio = BatchNormalization()(x_audio)
+
+    
 
     x_concat = tf.concat([x_audio, Yn], axis=-1)
     Yo = Conv2D(1, (3, 3), padding='same', activation='sigmoid', name='onset')(x_concat)
