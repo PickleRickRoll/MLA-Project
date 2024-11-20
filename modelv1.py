@@ -57,12 +57,10 @@ def model_v1(input_shape, n_harmonics: int = 8,
     Yn = Conv2D(1, (7, 3), padding='same', activation='sigmoid', name='note')(x_note)
 
     # Third block (to extract onset posteriorgram Yo using audio features and Yn)
-    x_audio = Conv2D(32, (3, 3), padding='same', activation='relu')(inputs)
+    x_audio = Conv2D(32, (5, 5), padding='same', activation='relu', strides = (1,3))(x)
     x_audio = BatchNormalization()(x_audio)
-
-    
-
-    x_concat = tf.concat([x_audio, Yn], axis=-1)
+    x_audio = ReLU()(x_audio)
+    x_concat = tf.concat([x_audio, Yn], axis=3, name='concat')
     Yo = Conv2D(1, (3, 3), padding='same', activation='sigmoid', name='onset')(x_concat)
 
     # Define the model
