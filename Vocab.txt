@@ -1,0 +1,174 @@
+# Music and Audio Vocabulary for Polyphonic Note Transcription
+
+## Pitch
+- Pitch refers to how high or low a sound is perceived.
+- Measured in Hertz (Hz). Example: A4 = 440 Hz.
+
+## Notes
+- Notes are the names for pitches: A, B, C, D, E, F, G (with sharps (#) or flats (b)).
+- Notes repeat in cycles called octaves, where the frequency doubles every octave.
+  - Example: A3 = 220 Hz, A4 = 440 Hz, A5 = 880 Hz.
+
+## Semitones
+- The smallest interval in Western music. 12 semitones make up one octave.
+  - Example: Moving from C to C# (C-sharp) is one semitone.
+
+## Bins
+- Frequency intervals used in spectral analysis (like the Constant-Q Transform).
+- Each bin corresponds to a specific frequency range.
+  - Example: With 12 bins per octave, each bin represents one semitone.
+
+## Frames
+- Short segments of the audio signal, used for analyzing how frequencies change over time.
+- Each frame represents a small slice of time.
+
+## Hop Length
+- The number of samples between consecutive frames.
+- Determines how much overlap exists between frames:
+  - Smaller hop length = finer time resolution.
+  - Example: If the sampling rate is 44100 Hz and hop length = 512, each frame ≈ 11.6 ms.
+
+## Octave
+- A range of notes where the highest note has double the frequency of the lowest note.
+  - Example: A3 = 220 Hz, A4 = 440 Hz (1 octave apart).
+
+## Chromatic Scale
+- A scale containing all 12 semitones in an octave.
+  - Example: C, C#, D, D#, E, F, F#, G, G#, A, A#, B.
+
+## CQT (Constant-Q Transform)
+- A method to analyze audio frequencies on a logarithmic scale.
+- Matches human perception and represents frequencies like musical pitches.
+
+## Frequency Resolution
+- Refers to how precisely different frequencies are separated in the analysis.
+- Lower frequencies have better resolution in the CQT.
+
+## Sampling Rate (sr)
+- The number of audio samples captured per second, measured in Hz.
+  - Example: Common sampling rates include 44100 Hz (CD quality) or 16000 Hz.
+
+# How These Terms Apply to Your Project
+- **CQT**: Divides audio into frames and computes bins corresponding to musical pitches.
+- **Semitones**: Define the frequency intervals in the CQT.
+- **Frames**: Capture changes in frequency content over time.
+- **Bins**: Represent specific pitches or semitones.
+- **Hop Length**: Controls the time resolution of the analysis.
+- **Chromatic Scale**: Ensures alignment with Western musical notation.
+
+
+
+
+
+
+
+
+
+
+### 1. **Why is music discretized into notes and not a continuous scale, like signals in Fourier Transform?**  
+
+Music is inherently continuous in the physical world (sound waves are continuous), but it is discretized into **notes** for practical and perceptual reasons:  
+- **Human perception**: Humans perceive pitch logarithmically, and discrete notes align with the way our brain interprets sound. The Western chromatic scale divides an octave into 12 semitones because this system captures the most musically useful pitches for harmony and melody.  
+- **Cultural conventions**: Musical systems evolved to standardize pitch for easier composition, performance, and tuning.  
+- **Instrument constraints**: Physical instruments often have discrete points of resonance (e.g., frets on a guitar, keys on a piano).  
+
+The Fourier Transform, on the other hand, analyzes all frequencies (continuous spectrum), which is useful for scientific analysis but not directly tied to musical notation.
+
+---
+
+### 2. **Are there infinite pitches (e.g., A1000)?**  
+
+
+Yes, theoretically, there are infinite pitches because frequency is continuous. You can always find a frequency between any two pitches.  
+- However, **naming conventions** like A4, B5, etc., are based on standardized tuning systems. For example, A4 = 440 Hz, A5 = 880 Hz, and so on.  
+- In practice, humans can only distinguish a limited number of pitches due to auditory resolution, and musical systems simplify this by using discrete pitches.
+
+---
+
+### 3. **Are semitones the smallest interval in Western music? Is a semitone a constant frequency interval?**  
+
+- **Smallest interval**: A semitone is the smallest interval in Western music, but it is not a constant frequency interval.  
+- **Logarithmic relationship**: The frequency ratio between two semitones is constant and equal to  2^(1/12) (approximately 1.059). This means the interval in Hz between notes increases as you go up the scale:  
+  - Example: A4 (440 Hz) to A#4 ≈ 440 × 1.059 = 466 Hz (difference: 26 Hz).  
+  - A5 (880 Hz) to A#5 ≈ 880 × 1.059 = 932 Hz (difference: 52 Hz).  
+
+This is because pitches follow a logarithmic scale, not a linear one, and this aligns with how we perceive sound.
+
+---
+
+### 4. **Why do we use hop length instead of no overlap (hop length = 0)?**  
+
+- **Hop length** determines how much the analysis window shifts between frames. A hop length of 0 would mean no shift, resulting in redundant data and extremely high computational cost.  
+- **Overlap is useful**: Overlap improves the time resolution by ensuring that short-duration events (e.g., a fast note) are not missed. For example:  
+  - With a large hop length, some notes might occur between frames and be missed.  
+  - Overlapping frames help smooth transitions and improve accuracy in time-sensitive tasks like pitch transcription.  
+
+In practice, hop length is often set to 25–50% of the frame size (e.g., if frame size = 1024 samples, hop length = 256–512 samples).
+
+---
+
+### 5. **What is the relationship between hop length and the number of frames?**
+  
+The **number of frames** in an analysis depends on:  
+- The total number of samples in the signal.  
+- The hop length (number of samples between frames).  
+
+
+If you use a smaller hop length, you get more frames (better time resolution), but it increases computation. Larger hop lengths reduce the overlap and result in fewer frames.
+
+
+
+
+You are almost correct in your understanding, but let me clarify **hop length** further:  
+
+### **Hop Length Basics**
+- The **hop length** is the number of samples you *move forward* when shifting from one frame to the next.  
+- Hop length does not "skip" or "ignore" samples; rather, it determines the amount of overlap between adjacent frames.  
+
+Here’s how it works:  
+- **Frame size**: The total number of samples in each frame (e.g., 5 samples in your example).  
+- **Hop length**: The number of samples you advance to start the next frame.  
+
+---
+
+### **Examples with Hop Length**
+#### 1. **Hop length = frame size (no overlap)**  
+If the frame size is 5 and hop length is 5:  
+- Frame 1: Samples 1–5.  
+- Frame 2: Samples 6–10.  
+- Frame 3: Samples 11–15.  
+
+Here, there is no overlap between frames.
+
+#### 2. **Hop length < frame size (overlap exists)**  
+If the frame size is 5 and hop length is 2:  
+- Frame 1: Samples 1–5.  
+- Frame 2: Samples 3–7.  
+- Frame 3: Samples 5–9.  
+
+Here, there is overlap between adjacent frames (3 samples overlap per frame).
+
+#### 3. **Hop length > frame size (gaps exist)**  
+If the frame size is 5 and hop length is 7:  
+- Frame 1: Samples 1–5.  
+- Frame 2: Samples 8–12.  
+- Frame 3: Samples 15–19.  
+
+Here, there are gaps between frames (2 samples are skipped between frames).
+
+---
+
+### **Hop Length Cannot Be Negative**
+Hop length cannot be negative in practical audio processing. A negative value would imply moving **backwards**, which is not supported in most audio analysis methods (like STFT or CQT). 
+
+---
+
+### **Why Overlap Is Useful**
+Overlap improves the analysis because:  
+1. **Short events**: Overlap ensures that transient sounds (like short notes) are captured even if they fall between two frames.  
+2. **Smoothness**: It reduces abrupt changes between adjacent frames in the analysis, leading to better results for tasks like spectrogram generation.  
+
+A typical choice for hop length is 25–50% of the frame size, balancing time resolution and computational efficiency.  
+
+
+
