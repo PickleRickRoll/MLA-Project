@@ -9,16 +9,17 @@ from tensorflow.keras.models import Model
 #On va importer le HCQT car ce n'est pas le but de réapprendre à l'implémenter, mais on peut le completer.
 
 
-def model_v1(input_shape, n_harmonics: int = 8,
-    n_filters_contour: int = 32,
-    n_filters_onsets: int = 32,
-    n_filters_notes: int = 32,
-    no_contours: bool = False,):
+def model_v1(input_shape,):
     """
     Builds the lightweight neural network for polyphonic transcription.
     :param input_shape: Tuple indicating the input shape (time, frequency, channels).
     :return: TensorFlow Keras model.
     """
+     n_harmonics: int = 8,
+    n_filters_contour: int = 32,
+    n_filters_onsets: int = 32,
+    n_filters_notes: int = 32,
+    no_contours: bool = False,
     # Input layer
     inputs = Input(shape=input_shape)
 
