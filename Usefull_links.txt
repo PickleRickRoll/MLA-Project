@@ -1,0 +1,4 @@
+Usefull_links
+-----------------
+https://pumpp.readthedocs.io/en/latest/index.html
+https://librosa.org/doc/0.10.2/generated/librosa.cqt.html

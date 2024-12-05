@@ -31,30 +31,32 @@ def dsp(path,sr=44100):
     return y , sr
 
 
-def cqt(signal,sample_rate,hop_length,n_bins,bins_per_octave,plot=False):
+def cqt(signal,sample_rate,hop_length,f_min,n_bins,bins_per_octave,plot=False):
     
     #audio_file = path 
-
     #y, sr = librosa.load(audio_file, sr=None)  # Preserve original sampling rate
-    # y : audio time series. Multi-channel is supported.
-    # sr : sampling rate of the signal
+    '''
+        y : audio time series. Multi-channel is supported.
+        sr : sampling rate of the signal
+        hop_length (int, optional): : The number of samples between successive frames when computing the transform.
+    This determines the time resolution of the resulting CQT.
+    Lower values give finer time resolution but require more computation.
+    Default: 512 (typical for audio analysis).
+        n_bins (int): The total number of frequency bins to compute in the CQT.
+    This determines the frequency range covered by the transform.
+    Example: With bins_per_octave=12, n_bins=84 spans 7 octaves (84 / 12 = 7).
+        bins_per_octave (int):
+    The number of frequency bins per octave.
+    Commonly set to 12 for equal-tempered chromatic scales, aligning with musical notes.
+    If you want higher resolution within each octave, you can increase this value (e.g., 24 for quarter tones).
 
-
-    # Compute the CQT
-    cqt_result = librosa.cqt(signal, sr=sample_rate, hop_length=hop_length, n_bins=n_bins, bins_per_octave=bins_per_octave)
-
-    #   hop_length (int, optional): : The number of samples between successive frames when computing the transform.
-    #This determines the time resolution of the resulting CQT.
-    #Lower values give finer time resolution but require more computation.
-    #Default: 512 (typical for audio analysis).
-    #   n_bins (int): The total number of frequency bins to compute in the CQT.
-    #This determines the frequency range covered by the transform.
-    #Example: With bins_per_octave=12, n_bins=84 spans 7 octaves (84 / 12 = 7).
-    #   bins_per_octave (int):
-    #The number of frequency bins per octave.
-    #Commonly set to 12 for equal-tempered chromatic scales, aligning with musical notes.
-    #If you want higher resolution within each octave, you can increase this value (e.g., 24 for quarter tones).
-
+    output dim ( n t frames, n_bins , 1) a prevoir nbatch et concatiner avec 1 ---> final output : (n_batch, n_times, n_freqs, 1)
+    the 1 is here to later concatenate on this ax for the hcqt
+    '''
+    
+    cqt_result = librosa.cqt(signal, sr=sample_rate, hop_length=hop_length,fmin=f_min ,n_bins=n_bins, bins_per_octave=bins_per_octave)
+    #cqt_result = librosa.cqt(signal, sr=sample_rate,fmin=f_min ,n_bins=n_bins)
+    #output = np.ndarray [shape=(…, n_bins, t)]
 
     if plot :
         # Convert to dB for better visualization
@@ -62,42 +64,52 @@ def cqt(signal,sample_rate,hop_length,n_bins,bins_per_octave,plot=False):
 
         # Visualize the CQT
         plt.figure(figsize=(10, 6))
-        librosa.display.specshow(cqt_db, sr=sr, hop_length=512, x_axis='time', y_axis='cqt_note', bins_per_octave=12)
+        librosa.display.specshow(cqt_db, sr=sr, hop_length=hop_length, x_axis='time', y_axis='cqt_note', bins_per_octave=bins_per_octave)
         plt.colorbar(format="%+2.0f dB")
         plt.title("Constant-Q Transform (CQT)")
         plt.tight_layout()
         plt.show()
-
+    cqt_result=cqt_result.T
+    cqt_result=cqt_result.reshape(*cqt_result.shape,1)
     return cqt_result
 
 
-def harmonic_stack(cqt_result, sr, n_harmonics=7, hop_length=512, bins_per_semitone=12,output_freq=5*12*12,plot=False):
+def harmonic_stack(cqt_result, sr, harmonics, hop_length=512, bins_per_semitone=12,output_freq=5*12*12,plot=False):
     """
     Parameters:
     - cqt_result: The result of the CQT (shape: [n_times, n_freqs]).
-    - n_harmonics: Number of harmonics to stack.
+    - harmonics: list of harmonics to stack.
     - bins_per_semitone: The number of bins per semitone in the CQT.
     - output_freq: Number of output frequency bins.
     - plot : true if you want to plot the cqt of the harmonically stacked 
     Returns:
     - stacked_harmonics: The stacked harmonics.
+
+    Inspired from basic-pitch
+
+    input dimensions(n time frames , n bins , 1)
+    time_frames=lenght signal / legnth hop frames = lsignal / (hop length/sample rate)
+    n bins = n of harmonics * bins per octave
+
+    output : (n_times, n_output_freqs, len(harmonics)) ----> final :  (n_batch, n_times, n_output_freqs, len(harmonics))
+
     """
     # Calculate harmonic shifts based on the harmonics
-    harmonics = np.arange(1, n_harmonics + 1)
+    
     shifts = np.round(12.0 * bins_per_semitone * np.log2(harmonics)).astype(int)# Calculate shifts for each harmonic
     
     stacked_harmonics = []
 
-    # Iterate through each time frame
+    # Iterate through each time frame , inspired from basic-pitch
     for shift in shifts:
         if shift == 0:
             padded = cqt_result
         elif shift > 0:
             # Pad the frequency axis to the right
-            padded = np.pad(cqt_result[:, shift:], ((0, 0), (0, shift)), mode='constant')
+            padded = np.pad(cqt_result[:,shift:,: ], ((0, 0), (0, shift),(0,0)), mode='constant')
         elif shift < 0:
             # Pad the frequency axis to the left
-            padded = np.pad(cqt_result[:, :shift], ((0, 0), (-shift, 0)), mode='constant')
+            padded = np.pad(cqt_result[:,:shift ,:], ((0, 0), (-shift, 0),(0,0)), mode='constant')
         else:
             raise ValueError("Invalid shift value.")
         
@@ -107,45 +119,42 @@ def harmonic_stack(cqt_result, sr, n_harmonics=7, hop_length=512, bins_per_semit
     # Stack the harmonics along the last axis (axis=-1)
     stacked_harmonics = np.concatenate(stacked_harmonics, axis=-1)
     # Cut off unnecessary frequencies (output_freq bins)
-    stacked_harmonics = stacked_harmonics[:, :output_freq]
+    #stacked_harmonics = stacked_harmonics[:,:output_freqs ,:]
 
     if plot:
-        # Apply a logarithmic scale to better visualize the amplitude variation
-        cqt_log = np.log(np.abs(stacked_harmonics) + 1e-6)  # add small value to avoid log(0)
-
-        # Plot the harmonic stacking with a logarithmic scale
-        fig, ax = plt.subplots(figsize=(10, 6))
-        im = ax.imshow(cqt_log.T, aspect='auto', cmap='inferno', origin='lower', 
-                    extent=[0, cqt_result.shape[1] * hop_length / sr, 0, n_harmonics])
-
-        # Add a colorbar linked to the imshow plot
-        cbar = plt.colorbar(im, ax=ax, format="%+2.0f dB")
-        cbar.set_label('Amplitude (dB)')
-
-        # Set titles and labels
-        ax.set_title("Harmonic Stacking")
-        ax.set_ylabel("Harmonic")
-        ax.set_xlabel("Time (seconds)")
-
+        cqt_log1 = librosa.amplitude_to_db(np.abs(stacked_harmonics[:,:,1].T) + 1e-6, ref=np.max)
+        cqt_log2 = librosa.amplitude_to_db(np.abs(stacked_harmonics[:,:,2].T) + 1e-6, ref=np.max)
+        cqt_log3 = librosa.amplitude_to_db(np.abs(stacked_harmonics[:,:,3].T) + 1e-6, ref=np.max)
+        
+        plt.figure(figsize=(10, 6))
+        for i, cqt_log in enumerate([cqt_log1, cqt_log2, cqt_log3], 1):
+            plt.subplot(1, 3, i)
+            librosa.display.specshow(cqt_log, sr=sr, hop_length=hop_length, x_axis='time', y_axis='cqt_note', bins_per_octave=bins_per_semitone*12)
+            plt.title(f"Harmonic {i}")
+        
+        plt.colorbar(format="%+2.0f dB")
         plt.tight_layout()
         plt.show()
+
 
     return stacked_harmonics
 
 
-
-
+#mlt_ptch_tst=C3+C4+B3
+path='C:/Users/admin/Desktop/master2/MLA/projet/mlt_ptch_tst.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
 sample_rate=44100
-hop_length=512
-n_bins=84
-bins_per_octave=12*12
-bins_per_semitone=12
+f_min=32.7
 n_harmonics=7
+harmonics=[0.5,1,2,3,4,5,6]
+hop_length=512
+bins_per_semitone=12
+bins_per_octave=12*bins_per_semitone
+n_bins=bins_per_octave*n_harmonics
+output_freq=500
 
-
-signal,sr=dsp(path='C:/Users/admin/Desktop/master2/MLA/Datasets/MTG-QBH/audio/q4.wav')
-cqt_result=cqt(signal,sample_rate=sr,hop_length=hop_length,n_bins=n_bins,bins_per_octave=bins_per_octave,plot=True)
+signal,sr=dsp(path)
+cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=True)
 print(cqt_result.shape)  # Should give (n_times, n_freqs)
 
-result=harmonic_stack(cqt_result, sr, n_harmonics=7, hop_length=512, bins_per_semitone=12,output_freq=10*5*12*12,plot=True)
-
+result=harmonic_stack(cqt_result, sr, harmonics, hop_length, bins_per_semitone,output_freq,plot=True)
+print(result.shape)

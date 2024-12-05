@@ -14,7 +14,7 @@ Pour éviter de confondre une note et une harmonique (une note une octave plus h
 
 
 
-ali partie experiments
+partie experiments
 ------------------------
 
 
@@ -236,5 +236,59 @@ Results:
         Vocano: Peak memory: 8.5 GB.
 
 end
+
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+5-12-2024
+
+direction a suivre:
+
+le model
+le pre-traitement des signal : HCQT
+pipeline entre donees brut et pre_traitement 
+organisations des donnees , training ,validation and tests
+############################################################
+
+Pre-traitement et HCQT :
+
+-resampling and converting stereo to mono sound
+-cqt using librosa : attention au constante , elle doivent bien etre calculer , regarder le code 
+-HCQT :
+
+H(h=harmonics,t=time frames ,f =frequency ) :_our chaque harmonique h, H(h) est une CQT avec comme fréquence minimum h.fmin avec h appartien [0.5,1,2,3,4,5...] et fmin = 32.7 : cours 
+
+
+cad a la place de regarder la cqt avec toutes les octaves , on peut stacker les harmonics = les autres octaves l'une sur l'autre et les allignes , comes des livres , et puis regarder une seul octave et j'aurais toutes les infos du signal sur cette octave de bases qui contient f0 jus'qua fmax 
+
+
+
+imagine 4 livres de vert et 2 rouge , fonce et clair 
+
+--livrerouge1--livrevert1--livrerouge2--liververt2--  
+
+--livrerouge1--livrevert1
+--livrerouge2--liververt2   
+
+
+quoi expecter du graphe de la hcqt pour une note pur ?
+pour la cqt une note pur va etre un graphe avec des raies horizontale en y = f fondamentale . i avec i apparteirn a 1,2....
+pour la hcqt commes les harmoniques sont stackees lune sur l'autre  cad ca doit faire une droite hrizontale ?????
+
+comment faire la hcqt 
+
+calculer dans une boucle for les harmonics chaque cqt avec fmin la harmonic puis append les cqt 
+ tres couteux 
+ a la place calculer une celle cqt , puis extraire de la cqt di signal la bande allante de l'octave i a l'octave n
+ append chaque cqt dans une liste 
+ faire attention au dimensions ,pader en 0 les troues pour avoir les meme dim du signale de base 
+ cad h = 2 , deleted 0.5 and 1 ---> padding with 2 octaves at the end not sure 
+   
+
+FAIRE ATTENTION AU dimension
+
+Pourquoi utiliser la hcqt ???????????
+
 
 
