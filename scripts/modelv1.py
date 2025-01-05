@@ -8,6 +8,10 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import ReLU
 import tensorflow.keras.layers as nn
 from tensorflow.keras.layers import concatenate
+from utils import cqt , harmonic_stack , dsp ,vis_cqt
+
+
+
 #from basic_pitch import nn
 #from basic_pitch.constants import SAMPLE_RATE
 
@@ -72,40 +76,55 @@ def model_v1(input_shape):
     x_audio = ReLU()(x_audio)
     x_concat = concatenate([x_audio, Yn], axis=3, name='concat')
     Yo = Conv2D(1, (3, 3), padding='same', activation='sigmoid', name='onset')(x_concat)
-
+    
     # Define the model
     model = Model(inputs, [Yo, Yn, Yp], name="lightweight_AMT")
     return model
 
-# Model summary
-input_shape = (200, 60, 1)  # Example input shape (time frames, frequency bins, channels)
-model = model_v1(input_shape)
 
 
-# Compiler le modèle
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-    loss={
-        'onset': 'binary_crossentropy',
-        'note': 'binary_crossentropy',
-        'multipitch': 'binary_crossentropy',
-    },
-    metrics={
-        'onset': 'accuracy',
-        'note': 'accuracy',
-        'multipitch': 'accuracy',
-    },
-    loss_weights={'onset': 0.95, 'note': 1.0, 'multipitch': 1.0}
-)
+if __name__=="__main__":
+    path='C:/Users/admin/Desktop/master2/MLA/Datasets/vocadito/audio/vocadito_9.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
+    sample_rate=44100
+    f_min=32.7
+    n_harmonics=8
+    harmonics=[0.5,1,2,3,4,5,6,7]
+    hop_length=512
+    bins_per_semitone=3
+    bins_per_octave=12*bins_per_semitone
+    n_bins=bins_per_octave*n_harmonics
+    output_freq=500#pas utiliser pour le momment 
 
-# Entraîner le modèle
-history = model.fit(
-    train_dataset,
-    validation_data=val_dataset,
-    epochs=50,  # Ajustez en fonction de vos besoins
-    callbacks=[
-        tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True),
-        tf.keras.callbacks.ModelCheckpoint("best_model.h5", save_best_only=True)
-    ]
-)
+
+
+    signal,sr=dsp(path)
+    cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=False)
+    print(cqt_result.shape)  # Should give (n_times, n_freqs)
+
+    result=harmonic_stack(cqt_result, sr, harmonics, hop_length, bins_per_semitone,output_freq,plot=False)
+    print(result.shape)
+
+    model=model_v1(result.shape)
+    model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            loss={
+                'onset': 'binary_crossentropy',
+                'note': 'binary_crossentropy',
+                'multipitch': 'binary_crossentropy',
+            },
+            metrics={
+                'onset': 'accuracy',
+                'note': 'accuracy',
+                'multipitch': 'accuracy',
+            },
+            loss_weights={'onset': 0.95, 'note': 1.0, 'multipitch': 1.0}
+        )
+
+    input=np.expand_dims(result, axis=0)
+    output=model.predict(input)
+    print(output[1][0].shape)
+
+    vis_cqt(output[0][0],sample_rate,hop_length,bins_per_semitone,"Yo",True)
+    vis_cqt(output[1][0],sample_rate,hop_length,bins_per_semitone,"Yn",True)
+    vis_cqt(output[2][0],sample_rate,hop_length,bins_per_semitone,"Yp",True) 
 

@@ -64,14 +64,15 @@ def cqt(signal,sample_rate,hop_length,f_min,n_bins,bins_per_octave,plot=False):
 
         # Visualize the CQT
         plt.figure(figsize=(10, 6))
-        librosa.display.specshow(cqt_db, sr=sr, hop_length=hop_length, x_axis='time', y_axis='cqt_note', bins_per_octave=bins_per_octave)
+        librosa.display.specshow(cqt_db, sr=sample_rate, hop_length=hop_length, x_axis='time', y_axis='cqt_note', bins_per_octave=bins_per_octave)
         plt.colorbar(format="%+2.0f dB")
         plt.title("Constant-Q Transform (CQT)")
         plt.tight_layout()
         plt.show()
     cqt_result=cqt_result.T
     cqt_result=cqt_result.reshape(*cqt_result.shape,1)
-    return cqt_result
+    #return cqt_result
+    return np.abs(cqt_result)
 
 
 def harmonic_stack(cqt_result, sr, harmonics, hop_length=512, bins_per_semitone=12,output_freq=5*12*12,plot=False):
@@ -140,21 +141,44 @@ def harmonic_stack(cqt_result, sr, harmonics, hop_length=512, bins_per_semitone=
     return stacked_harmonics
 
 
-#mlt_ptch_tst=C3+C4+B3
-path='C:/Users/admin/Desktop/master2/MLA/projet/mlt_ptch_tst.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
-sample_rate=44100
-f_min=32.7
-n_harmonics=7
-harmonics=[0.5,1,2,3,4,5,6]
-hop_length=512
-bins_per_semitone=12
-bins_per_octave=12*bins_per_semitone
-n_bins=bins_per_octave*n_harmonics
-output_freq=500
+def vis_cqt(result,sample_rate,hop_length,bins_per_semitone,title,cond=False):
+    if cond:
+        cqt_log = librosa.amplitude_to_db(np.abs(result[:,:,0].T) + 1e-6, ref=np.max)
+        
+        plt.figure(figsize=(10, 6))
+        librosa.display.specshow(cqt_log, sr=sample_rate, hop_length=hop_length, x_axis='time', y_axis='cqt_note', bins_per_octave=bins_per_semitone*12)
+        plt.title(title)
+        
+        plt.colorbar(format="%+2.0f dB")
+        #plt.colorbar()
+        plt.tight_layout()
+        plt.show()
 
-signal,sr=dsp(path)
-cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=True)
-print(cqt_result.shape)  # Should give (n_times, n_freqs)
 
-result=harmonic_stack(cqt_result, sr, harmonics, hop_length, bins_per_semitone,output_freq,plot=True)
-print(result.shape)
+
+
+
+
+
+
+
+if __name__=="__main__" :
+
+    #mlt_ptch_tst=C3+C4+B3
+    path='C:/Users/admin/Desktop/master2/MLA/projet/mlt_ptch_tst.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
+    sample_rate=44100
+    f_min=32.7
+    n_harmonics=7
+    harmonics=[0.5,1,2,3,4,5,6]
+    hop_length=512
+    bins_per_semitone=12
+    bins_per_octave=12*bins_per_semitone
+    n_bins=bins_per_octave*n_harmonics
+    output_freq=500
+
+    signal,sr=dsp(path)
+    cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=True)
+    print(cqt_result.shape)  # Should give (n_times, n_freqs,1)
+
+    result=harmonic_stack(cqt_result, sr, harmonics, hop_length, bins_per_semitone,output_freq,plot=True)
+    print(result.shape)
