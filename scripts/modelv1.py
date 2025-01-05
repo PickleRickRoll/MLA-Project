@@ -9,6 +9,8 @@ from tensorflow.keras.layers import ReLU
 import tensorflow.keras.layers as nn
 from tensorflow.keras.layers import concatenate
 from utils import cqt , harmonic_stack , dsp ,vis_cqt
+from preprocessing_utils import trim_midi , generate_frequency_bins,generate_posteriorgrams
+
 
 
 
@@ -26,6 +28,19 @@ def model_v1(input_shape):
     :param input_shape: Tuple indicating the input shape (time, frequency, channels).
     :return: TensorFlow Keras model.
     """
+
+    """
+    input shape : (n_batches,n_time_frames,frequ_bins=3bins/semitone,harmnonics_number)
+    output shape :[Yo,Yn,Yp]
+    Yo shape : (n_time_frames,frequ_bins=1bin/semitone,1)
+    Yn shape : (n_time_frames,frequ_bins=1bin/semitone,1)
+    Yp shape : (n_time_frames,frequ_bins=3bin/semitone,1)
+    
+
+    """
+
+
+
     n_harmonics: int = 8
     n_filters_contour: int = 32
     n_filters_onsets: int = 32
@@ -84,25 +99,42 @@ def model_v1(input_shape):
 
 
 if __name__=="__main__":
-    path='C:/Users/admin/Desktop/master2/MLA/Datasets/vocadito/audio/vocadito_9.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
+    path1='C:/Users/admin/Desktop/master2/MLA/projet/tst files/test_data/bassoon1.wav'#Datasets/MTG-QBH/audio projet/C_major_scale.wav
+    path2='C:/Users/admin/Desktop/master2/MLA/projet/tst files/test_data/bassoon.mid'
     sample_rate=44100
     f_min=32.7
     n_harmonics=8
     harmonics=[0.5,1,2,3,4,5,6,7]
-    hop_length=512
+    hop_length=512  # = sample_rate * frame lenght = 44100*11.6ms
     bins_per_semitone=3
     bins_per_octave=12*bins_per_semitone
     n_bins=bins_per_octave*n_harmonics
-    output_freq=500#pas utiliser pour le momment 
+    output_freq=500# pas utiliser pour le momment 
+    max_duration=7.0
 
-
-
-    signal,sr=dsp(path)
-    cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=False)
-    print(cqt_result.shape)  # Should give (n_times, n_freqs)
-
+    '''x train exemple'''
+    signal,sr=dsp(path1,sample_rate,max_duration)
+    cqt_result=cqt(signal,sr,hop_length,f_min,n_bins,bins_per_octave,plot=True)
+    print('cqt shape ',cqt_result.shape)  # Should give (n_times, n_freqs,1)
     result=harmonic_stack(cqt_result, sr, harmonics, hop_length, bins_per_semitone,output_freq,plot=False)
-    print(result.shape)
+    print('hcqt shape ',result.shape)
+    input=np.expand_dims(result, axis=0)
+    print('input shape ',input.shape)
+    
+
+    '''Y train exemple'''
+    midi_data=trim_midi(path2,max_duration)
+    freq_bins1=generate_frequency_bins(int(n_bins/3),sample_rate,int(bins_per_octave/3),f_min)
+    freq_bins2=generate_frequency_bins(n_bins,sample_rate,bins_per_octave,f_min)
+    Yo,Yn,Yp = generate_posteriorgrams(midi_data, max_duration, hop_length, sample_rate,freq_bins1,freq_bins2)
+    print(Yo.shape)
+    print(Yn.shape)
+    print(Yp.shape)
+    # Visualize
+    #visualize_posteriorgrams(Yo, Yn,Yp)
+    vis_cqt(Yo,sample_rate,hop_length,1,title="Onset Posteriorgram : Yo",cond=True)
+    vis_cqt(Yn,sample_rate,hop_length,1,title="Note Activation Posteriorgram : Yn",cond=True)
+    vis_cqt(Yp,sample_rate,hop_length,3,title="Pitch Activation Posteriorgram : Yp",cond=True)
 
     model=model_v1(result.shape)
     model.compile(
@@ -120,11 +152,12 @@ if __name__=="__main__":
             loss_weights={'onset': 0.95, 'note': 1.0, 'multipitch': 1.0}
         )
 
-    input=np.expand_dims(result, axis=0)
+    
     output=model.predict(input)
+    print(output[0][0].shape)
     print(output[1][0].shape)
-
-    vis_cqt(output[0][0],sample_rate,hop_length,bins_per_semitone,"Yo",True)
-    vis_cqt(output[1][0],sample_rate,hop_length,bins_per_semitone,"Yn",True)
-    vis_cqt(output[2][0],sample_rate,hop_length,bins_per_semitone,"Yp",True) 
+    print(output[2][0].shape)
+    vis_cqt(output[0][0],sample_rate,hop_length,1,"Yo-model",True)
+    vis_cqt(output[1][0],sample_rate,hop_length,1,"Yn-model",True)
+    vis_cqt(output[2][0],sample_rate,hop_length,3,"Yp-model",True) 
 
