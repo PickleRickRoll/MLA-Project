@@ -9,7 +9,7 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, Inpu
 from tensorflow.keras.models import Model
 
 
-def dsp(path,sr=44100):
+def dsp(path,sr=44100,max_duration=2):
     
     #Resampling
     target_sr = sr  # Target sampling rate 
@@ -26,7 +26,10 @@ def dsp(path,sr=44100):
         sr = target_sr
 
     #Filtering
-    
+    # Trim the signal to the maximum duration
+     
+    max_samples = int(max_duration * sr)
+    y = y[:max_samples]
 
     return y , sr
 
