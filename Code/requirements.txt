@@ -1,0 +1,7 @@
+mir_eval
+tensorflow
+numpy
+librosa
+matplotlib
+tqdm
+pretty_midi
