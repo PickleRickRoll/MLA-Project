@@ -1,0 +1,9 @@
+sample_rate = 44100
+f_min = 32.7
+n_harmonics = 8
+harmonics = [0.5, 1, 2, 3, 4, 5, 6, 7]
+hop_length = 512
+bins_per_semitone = 3
+bins_per_octave = 12 * bins_per_semitone
+n_bins = bins_per_octave * n_harmonics
+output_freq = 500  # not used for the moment

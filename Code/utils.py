@@ -1,16 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from variables import *
 import librosa
 import librosa.display
-
+from pathlib import Path
 
 def dsp(path, sr=44100):
 
     # Resampling
     target_sr = sr  # Target sampling rate
-    low_cutoff = 20  # Low-frequency cutoff (Hz)
-    high_cutoff = 20000  # High-frequency cutoff (Hz)
     y, sr = librosa.load(path, sr=None)  # Keep original sampling rate
     if y.ndim > 1:
         # print(f"Audio has {y.shape[0]} channels, converting to mono.")
@@ -21,15 +19,11 @@ def dsp(path, sr=44100):
         y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
 
-    # Filtering
-
     return y, sr
 
 
 def cqt(signal, sample_rate, hop_length, f_min, n_bins, bins_per_octave, plot=False):
 
-    # audio_file = path
-    # y, sr = librosa.load(audio_file, sr=None)  # Preserve original sampling rate
     """
         y : audio time series. Multi-channel is supported.
         sr : sampling rate of the signal
@@ -199,16 +193,10 @@ def vis_cqt(result, sample_rate, hop_length, bins_per_semitone, title, cond=Fals
 if __name__ == "__main__":
 
     # mlt_ptch_tst=C3+C4+B3
-    path = "C:/Users/admin/Desktop/master2/MLA/projet/mlt_ptch_tst.wav"  # Datasets/MTG-QBH/audio projet/C_major_scale.wav
-    sample_rate = 44100
-    f_min = 32.7
-    n_harmonics = 7
-    harmonics = [0.5, 1, 2, 3, 4, 5, 6]
-    hop_length = 512
-    bins_per_semitone = 12
-    bins_per_octave = 12 * bins_per_semitone
-    n_bins = bins_per_octave * n_harmonics
-    output_freq = 500
+    script_dir = Path(__file__).parent# Get the directory of the current script
+    project_dir = script_dir.parent
+    path = project_dir / "tst files"/ "mlt_ptch_tst.wav"
+    
 
     signal, sr = dsp(path)
     cqt_result = cqt(signal, sr, hop_length, f_min, n_bins, bins_per_octave, plot=True)

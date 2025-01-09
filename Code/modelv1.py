@@ -94,7 +94,7 @@ if __name__ == "__main__":
     bins_per_semitone = 3
     bins_per_octave = 12 * bins_per_semitone
     n_bins = bins_per_octave * n_harmonics
-    output_freq = 500  # pas utiliser pour le momment
+    output_freq = 500  # not used for the moment
 
     signal, sr = dsp(path)
     cqt_result = cqt(signal, sr, hop_length, f_min, n_bins, bins_per_octave, plot=False)
