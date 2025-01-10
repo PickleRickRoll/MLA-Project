@@ -3,14 +3,11 @@ import librosa
 import numpy as np
 import soundfile as sf
 import pretty_midi
+from variables import *
 
 # The aim of this first section is to take every audio file (.wav) inside a folder then resample it and divide it into 2 second audios.
 
-# Parameters
-audio_directory = "path_to_audios"  # Replace with your directory
-output_directory = "output_dir"      # Directory to save the dataset
-sampling_rate = 22050                   # Desired sampling rate
-clip_duration = 2                       # Duration of each audio clip in seconds
+
 
 def extract_audio_segments(audio_directory, output_directory, sampling_rate=22050, clip_duration=2):
     """
@@ -19,7 +16,7 @@ def extract_audio_segments(audio_directory, output_directory, sampling_rate=2205
     output_directory : path to output folder.
     sampling rate and clip duration : self explanatory.
     """
-    samples_per_clip = sampling_rate * clip_duration  # Total samples in one clip
+    samples_per_clip = int(sampling_rate * clip_duration)  # Total samples in one clip
     # Ensure the output directory exists
     os.makedirs(output_directory, exist_ok=True)
 
@@ -110,4 +107,7 @@ def process_all_midi_files(input_dir, output_dir, segment_length=2.0):
             segment_idx += 1
 
 
+if __name__ == "__main__":
 
+    extract_audio_segments(raw_dir, train_audio_dir , sample_rate, segment_length)
+    process_all_midi_files(raw_dir, train_midi_dir, segment_length=2.0)

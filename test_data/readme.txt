@@ -1,0 +1,1 @@
+The Data_partition script doesn't take in consideration if you try to partition the same data set or song more than one time , meaning during testing make sure to delete the contents of X_train and Y_train if you dont want duplicates 

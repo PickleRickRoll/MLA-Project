@@ -1,5 +1,3 @@
-# On fonctionne en tensorflow
-
 from typing import Any, Callable, Dict
 import numpy as np
 import tensorflow as tf
@@ -8,10 +6,15 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import ReLU
 import tensorflow.keras.layers as nn
 from tensorflow.keras.layers import concatenate
-from pathlib import Path
-from dsp_utils import cqt, harmonic_stack, dsp, vis_cqt
+from dsp_utils import  vis_cqt
 from variables import *
+from preprocessing_utils import process_audio
 
+"""
+
+This file contains the tensor flow model
+
+"""
 
 def model_v1(input_shape):
     """
@@ -19,13 +22,7 @@ def model_v1(input_shape):
     :param input_shape: Tuple indicating the input shape (time, frequency, channels).
     :return: TensorFlow Keras model.
     """
-    n_harmonics: int = 8
-    n_filters_contour: int = 32
-    n_filters_onsets: int = 32
-    n_filters_notes: int = 32
-    no_contours: bool = False
-    CONTOURS_BINS_PER_SEMITONE: int = 12
-    N_FREQ_BINS_CONTOURS: int = 13
+    
     # Input layer
     inputs = Input(shape=input_shape)
 
@@ -80,23 +77,18 @@ def model_v1(input_shape):
 
 
 if __name__ == "__main__":
-    path = path_wav
-   
-    signal, sr = dsp(path)
-    cqt_result = cqt(signal, sr, hop_size, f_min, n_bins, bins_per_octave, plot=False)
-    print(cqt_result.shape)  # Should give (n_times, n_freqs)
-
-    result = harmonic_stack(
-        cqt_result,
-        sr,
-        harmonics,
-        hop_size,
-        bins_per_semitone,
-        output_freq,
-        plot=False,
+    result=process_audio(
+    path_train,
+    f_min,
+    n_bins,
+    bins_per_octave,
+    harmonics,
+    bins_per_semitone,
+    sr=22050,
+    hop_size=512,
+    segment_length=2.0,
     )
     print(result.shape)
-
     model = model_v1(result.shape)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
@@ -114,9 +106,14 @@ if __name__ == "__main__":
     )
 
     input = np.expand_dims(result, axis=0)
+    print(input.shape)
+    #Do not exceed the 1 minute here or it's going to take a lot of time , to use with simple audio files or with already cut segements 
     output = model.predict(input)
-    print(output[1][0].shape)
+    print(type(output))
+    print(output[0].shape)
+    print(output[1].shape)
+    print(output[2].shape)
 
-    vis_cqt(output[0][0], sample_rate, hop_size, bins_per_semitone, "Yo", True)
-    vis_cqt(output[1][0], sample_rate, hop_size, bins_per_semitone, "Yn", True)
-    vis_cqt(output[2][0], sample_rate, hop_size, bins_per_semitone, "Yp", True)
+    vis_cqt(output[0][0], sample_rate, hop_size, bins_per_semitone, "Yo", False)
+    vis_cqt(output[1][0], sample_rate, hop_size, bins_per_semitone, "Yn", False)
+    vis_cqt(output[2][0], sample_rate, hop_size, bins_per_semitone, "Yp", False)

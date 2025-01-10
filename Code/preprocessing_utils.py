@@ -145,7 +145,9 @@ def create_dataset(
     hop_size,
     segment_length,
     num_frames,
-    time_resolution
+    time_resolution,
+    freq_bins1,
+    freq_bins2
 ):
     """
     Create training dataset from audio and MIDI files.
@@ -162,7 +164,7 @@ def create_dataset(
         y_train (dict): Dictionary of onset, activation, and pitch labels.
     """
     x_train = []
-    y_o, y_n, y_p = [], [], []
+    y_train=[]
 
     # Get list of audio and MIDI files
     audio_files = sorted([f for f in os.listdir(audio_dir) if f.endswith(".wav")])
@@ -171,7 +173,7 @@ def create_dataset(
     for audio_file, midi_file in tqdm(
         zip(audio_files, midi_files), total=len(audio_files), desc="Processing files"
     ):
-        """ May cause probelmes with using path with pathlib to verify """
+        
         audio_path = os.path.join(audio_dir, audio_file)
         midi_path = os.path.join(midi_dir, midi_file)
 
@@ -191,20 +193,19 @@ def create_dataset(
 
         # Process MIDI
         onset_posteriorgram, activation_posteriorgram, pitch_posteriorgram = (
-            process_midi(midi_path, num_frames, time_resolution)
+            process_midi(midi_path, num_frames, freq_bins1,freq_bins2,time_resolution)
         )
         x_train.append(audio_segments)
-        y_o.append(onset_posteriorgram)
-        y_n.append(activation_posteriorgram)
-        y_p.append(pitch_posteriorgram)
-
-        x_train = np.array(x_train)
-        y_o= np.array(y_o)
-        y_n= np.array(y_n)
-        y_p= np.array(y_p)
+        y_train.append([onset_posteriorgram,activation_posteriorgram,pitch_posteriorgram])
+        
 
 
-        """
+    x_train = np.array(x_train)
+    #y_train = list(zip(*y_train))
+        
+
+
+    """
         # Append to dataset
         for segment in audio_segments:
             x_train.append(segment[..., np.newaxis])  # Add channel dimension
@@ -219,9 +220,9 @@ def create_dataset(
         "note": np.array(y_activations, dtype=np.float32),
         "multipitch": np.array(y_pitches, dtype=np.float32),
     }
-        """
+    """
 
-    return x_train, y_o,y_n,y_p
+    return x_train, y_train
 
 if __name__=="__main__":
 
@@ -244,7 +245,8 @@ if __name__=="__main__":
     freq_bins1=generate_frequency_bins(int(n_bins/3),sample_rate,int(bins_per_octave/3),f_min)
     freq_bins2=generate_frequency_bins(n_bins,sample_rate,bins_per_octave,f_min)
 
-    Yo,Yp,Yn=process_midi(path_midi, num_frames, freq_bins1,freq_bins2,time_resolution)
+    Yo,Yn,Yp=process_midi(path_midi, num_frames, freq_bins1,freq_bins2,time_resolution)
     print(Yo.shape)
     print(Yn.shape)
     print(Yp.shape)
+    print(type(Yp))
