@@ -195,7 +195,7 @@ if __name__ == "__main__":
     # mlt_ptch_tst=C3+C4+B3
     script_dir = Path(__file__).parent# Get the directory of the current script
     project_dir = script_dir.parent
-    path = project_dir / "tst files"/ "mlt_ptch_tst.wav"
+    path = project_dir / "tst_data"/ "mlt_ptch_tst.wav"
     
 
     signal, sr = dsp(path)
