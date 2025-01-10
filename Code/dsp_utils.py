@@ -3,7 +3,15 @@ import matplotlib.pyplot as plt
 from variables import *
 import librosa
 import librosa.display
-from pathlib import Path
+
+
+"""
+This file contains digital signal processing tools 
+
+
+"""
+
+
 
 def dsp(path, sr=44100):
 
@@ -22,7 +30,7 @@ def dsp(path, sr=44100):
     return y, sr
 
 
-def cqt(signal, sample_rate, hop_length, f_min, n_bins, bins_per_octave, plot=False):
+def cqt(signal, sample_rate, hop_size, f_min, n_bins, bins_per_octave, plot=False):
 
     """
         y : audio time series. Multi-channel is supported.
@@ -46,7 +54,7 @@ def cqt(signal, sample_rate, hop_length, f_min, n_bins, bins_per_octave, plot=Fa
     cqt_result = librosa.cqt(
         signal,
         sr=sample_rate,
-        hop_length=hop_length,
+        hop_length=hop_size,
         fmin=f_min,
         n_bins=n_bins,
         bins_per_octave=bins_per_octave,
@@ -63,7 +71,7 @@ def cqt(signal, sample_rate, hop_length, f_min, n_bins, bins_per_octave, plot=Fa
         librosa.display.specshow(
             cqt_db,
             sr=sample_rate,
-            hop_length=hop_length,
+            hop_length=hop_size,
             x_axis="time",
             y_axis="cqt_note",
             bins_per_octave=bins_per_octave,
@@ -161,7 +169,6 @@ def harmonic_stack(
                 bins_per_octave=bins_per_semitone * 12,
             )
             plt.title(f"Harmonic {i}")
-
         plt.colorbar(format="%+2.0f dB")
         plt.tight_layout()
         plt.show()
@@ -183,26 +190,17 @@ def vis_cqt(result, sample_rate, hop_length, bins_per_semitone, title, cond=Fals
             bins_per_octave=bins_per_semitone * 12,
         )
         plt.title(title)
-
         plt.colorbar(format="%+2.0f dB")
-        # plt.colorbar()
         plt.tight_layout()
         plt.show()
 
 
 if __name__ == "__main__":
 
-    # mlt_ptch_tst=C3+C4+B3
-    script_dir = Path(__file__).parent# Get the directory of the current script
-    project_dir = script_dir.parent
-    path = project_dir / "tst_data"/ "mlt_ptch_tst.wav"
-    
-
-    signal, sr = dsp(path)
-    cqt_result = cqt(signal, sr, hop_length, f_min, n_bins, bins_per_octave, plot=True)
+    signal, sr = dsp(path_wav)
+    cqt_result = cqt(signal, sr, hop_size, f_min, n_bins, bins_per_octave, plot=True)
     print(cqt_result.shape)  # Should give (n_times, n_freqs,1)
-
     result = harmonic_stack(
-        cqt_result, sr, harmonics, hop_length, bins_per_semitone, output_freq, plot=True
+        cqt_result, sr, harmonics, hop_size, bins_per_semitone, output_freq, plot=True
     )
     print(result.shape)

@@ -4,8 +4,6 @@ import numpy as np
 import soundfile as sf
 import pretty_midi
 
-
-
 # The aim of this first section is to take every audio file (.wav) inside a folder then resample it and divide it into 2 second audios.
 
 # Parameters
@@ -14,44 +12,44 @@ output_directory = "output_dir"      # Directory to save the dataset
 sampling_rate = 22050                   # Desired sampling rate
 clip_duration = 2                       # Duration of each audio clip in seconds
 
-def extract_audio_segments(audio_directory, output_directory, sampling_rate=22050, clip_duration=2)
-  """
-  inputs :
-  audio_directory : path to audio files.
-  output_directory : path to output folder.
-  sampling rate and clip duration : self explanatory.
-  """
-  samples_per_clip = sampling_rate * clip_duration  # Total samples in one clip
-  # Ensure the output directory exists
-  os.makedirs(output_directory, exist_ok=True)
+def extract_audio_segments(audio_directory, output_directory, sampling_rate=22050, clip_duration=2):
+    """
+    inputs :
+    audio_directory : path to audio files.
+    output_directory : path to output folder.
+    sampling rate and clip duration : self explanatory.
+    """
+    samples_per_clip = sampling_rate * clip_duration  # Total samples in one clip
+    # Ensure the output directory exists
+    os.makedirs(output_directory, exist_ok=True)
 
-  # Initialize dataset storage
-  dataset = []
+    # Initialize dataset storage
+    dataset = []
 
-  # Process each audio file in the directory
-  for audio_file in os.listdir(audio_directory):
-      if audio_file.endswith(".wav"):  # Check for .wav files
-          file_path = os.path.join(audio_directory, audio_file)
-          print(f"Processing {file_path}")
+    # Process each audio file in the directory
+    for audio_file in os.listdir(audio_directory):
+        if audio_file.endswith(".wav"):  # Check for .wav files
+            file_path = os.path.join(audio_directory, audio_file)
+            print(f"Processing {file_path}")
         
-          # Load audio
-          audio, sr = librosa.load(file_path, sr=sampling_rate)
+            # Load audio
+            audio, sr = librosa.load(file_path, sr=sampling_rate)
         
-          # Split into 2-second clips
-          for start_idx in range(0, len(audio), samples_per_clip):
-              clip = audio[start_idx:start_idx + samples_per_clip]
+            # Split into 2-second clips
+            for start_idx in range(0, len(audio), samples_per_clip):
+                clip = audio[start_idx:start_idx + samples_per_clip]
             
-              # Ensure the clip is exactly 2 seconds long
-              if len(clip) == samples_per_clip:
-                  dataset.append(clip)
+                # Ensure the clip is exactly 2 seconds long
+                if len(clip) == samples_per_clip:
+                    dataset.append(clip)
                 
-                  # Optional: Save individual clips as .wav files
-                  clip_filename = f"{audio_file}_clip_{start_idx // samples_per_clip}.wav"
-                  #librosa.output.write_wav(, , sampling_rate)
-                  sf.write(os.path.join(output_directory, clip_filename), clip, sampling_rate)
+                    # Optional: Save individual clips as .wav files
+                    clip_filename = f"{audio_file}_clip_{start_idx // samples_per_clip}.wav"
+                    #librosa.output.write_wav(, , sampling_rate)
+                    sf.write(os.path.join(output_directory, clip_filename), clip, sampling_rate)
 
 
-# The aim of this second section is to take every midi file (.mid) inside a folder then divide it into 2 second midi midi files.
+    # The aim of this second section is to take every midi file (.mid) inside a folder then divide it into 2 second midi midi files.
 
 
 def extract_midi_segment(midi_file, start_time, segment_length):

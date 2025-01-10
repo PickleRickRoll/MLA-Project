@@ -3,6 +3,14 @@ import numpy as np
 from modelv1 import model_v1
 import tensorflow as tf
 
+"""
+Use This File To Debug Your Code
+Use This File To Debug Your Code
+Use This File To Debug Your Code
+Use This File To Debug Your Code
+Use This File To Debug Your Code
+Use This File To Debug Your Code
+"""
 
 path = "C:/Users/admin/Desktop/master2/MLA/Datasets/vocadito/audio/vocadito_9.wav"  # Datasets/MTG-QBH/audio projet/C_major_scale.wav
 sample_rate = 44100
