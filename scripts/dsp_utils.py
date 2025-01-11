@@ -59,8 +59,6 @@ def cqt(signal, sample_rate, hop_size, f_min, n_bins, bins_per_octave, plot=Fals
         n_bins=n_bins,
         bins_per_octave=bins_per_octave,
     )
-    # cqt_result = librosa.cqt(signal, sr=sample_rate,fmin=f_min ,n_bins=n_bins)
-    # output = np.ndarray [shape=(…, n_bins, t)]
 
     if plot:
         # Convert to dB for better visualization
@@ -127,7 +125,7 @@ def harmonic_stack(
         if shift == 0:
             padded = cqt_result
         elif shift > 0:
-            # Pad the frequency axis to the right
+            # Pad the frequency axis to the right (from top)
             padded = np.pad(
                 cqt_result[:, shift:, :], ((0, 0), (0, shift), (0, 0)), mode="constant"
             )
@@ -197,10 +195,10 @@ def vis_cqt(result, sample_rate, hop_length, bins_per_semitone, title, cond=Fals
 
 if __name__ == "__main__":
 
-    signal, sr = dsp(path_train)
-    cqt_result = cqt(signal, sr, hop_size, f_min, n_bins, bins_per_octave, plot=False)
+    signal, sr = dsp(path_simple_wav)
+    cqt_result = cqt(signal, sr, hop_size, f_min, n_bins, bins_per_octave, plot=True)
     print(cqt_result.shape)  # Should give (n_times, n_freqs,1)
     result = harmonic_stack(
-        cqt_result, sr, harmonics, hop_size, bins_per_semitone, output_freq, plot=False
+        cqt_result, sr, harmonics, hop_size, bins_per_semitone, output_freq, plot=True
     )
     print(result.shape)

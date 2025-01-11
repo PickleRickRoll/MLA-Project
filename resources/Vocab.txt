@@ -118,9 +118,6 @@ If you use a smaller hop length, you get more frames (better time resolution), b
 
 
 
-
-You are almost correct in your understanding, but let me clarify **hop length** further:  
-
 ### **Hop Length Basics**
 - The **hop length** is the number of samples you *move forward* when shifting from one frame to the next.  
 - Hop length does not "skip" or "ignore" samples; rather, it determines the amount of overlap between adjacent frames.  

@@ -291,4 +291,15 @@ FAIRE ATTENTION AU dimension
 Pourquoi utiliser la hcqt ???????????
 
 
-
+In a standard CQT representation, the kth frequency
+bin measures frequency fk = fmin · 2k/B for B bins per
+octave. As a result, harmonics h · fk can only be di-
+rectly measured for h = 2n (for integer n), making it
+difficult to capture odd harmonics. The HCQT represen-
+tation, however, conveniently aligns harmonics across the
+first dimension, so that the kth bin of H[h] has frequency
+fk = h · fmin · 2k/B , which is exactly the hth harmonic
+of the kth bin of H[1]. By aligning harmonics in this way,
+the HCQT is amenable to modeling with two-dimensional
+convolutional neural networks, which can now efficiently
+exploit locality in time, frequency, and harmonic.

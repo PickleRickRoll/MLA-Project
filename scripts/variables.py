@@ -16,17 +16,19 @@ num_frames = int(np.ceil(segment_length / time_resolution))
 
 
 
-
+"""
+These are local path that the scripts use to work properly , you can always change them to your liking
+but it's recomended to keep them like this 
+"""
 
 
 
 # mlt_ptch_tst=C3+C4+B3
 script_dir = Path(__file__).parent# Get the directory of the current script
 project_dir = script_dir.parent
-path_simple_wav = project_dir / "test_data"/ "simple_sounds" / "mlt_ptch_tst.wav"
+path_simple_wav = project_dir / "test_data"/ "simple_sounds" / "C_major_scale.wav"
 path_wav = project_dir / "test_data"/  "bassoon1.wav"
 path_midi=project_dir / "test_data"/ "bassoon.mid"
-
 path_train=project_dir / "test_data"/"X_train"/"bassoon1.wav_clip_28.wav"
 
 raw_dir=project_dir / "test_data"

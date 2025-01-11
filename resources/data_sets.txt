@@ -1,0 +1,11 @@
+link data sets
+----------------
+https://zenodo.org/records/5557945
+
+Molina:		  https://zenodo.org/records/1417729 (https://www.upf.edu/web/mtg/mtg-qbh /)
+Guitar set :	  https://zenodo.org/records/3371780
+MAESTRO Dataset:  https://magenta.tensorflow.org/datasets/maestro
+Slakh:		  http://www.slakh.com/#download
+phenicx:	  N/A
+iKala:		  https://paperswithcode.com/dataset/ikala (Not available anymore)
+Medley DB :       https://medleydb.weebly.com/
