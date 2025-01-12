@@ -6,5 +6,10 @@ Unlike many existing models that are often heavy, instrument-specific, or design
 
 The main innovation of the referenced paper is the use of multiple outputs from a single model, with each output capturing different aspects of the music. This multi-output approach allows for more comprehensive transcription while keeping the model lightweight and adaptable to various instruments.
 
+## Contributors
 
+- Bennacer Amine Rami (BennacerAmine)
+- Dang Mai-anh (maianhdang)
+- El Ghoul Ali (PickleRickRoll)
+- Orlovic Tatiana (tatianaorl)
 
