@@ -8,6 +8,7 @@ from variables import *
 from tqdm.keras import TqdmCallback
 from tensorflow.keras.models import load_model
 from evaluation import mir_eval
+import matplotlib.pyplot as plt
 
 
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     
     """
 
-    '''
+    #'''
     freq_bins1=generate_frequency_bins(int(n_bins/3),sample_rate,int(bins_per_octave/3),f_min)
     freq_bins2=generate_frequency_bins(n_bins,sample_rate,bins_per_octave,f_min)
     extract_audio_segments(raw_dir, train_audio_dir , sample_rate, segment_length)
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     history = model.fit(
         X_train,
         Y_train,
-        batch_size=20,
+        batch_size=18,
         epochs=100,
         validation_split=0.2,
         callbacks=[TqdmCallback(verbose=1)],
@@ -77,7 +78,22 @@ if __name__ == "__main__":
     model.save(model_path)
 
     print("########### Model Saved ########## ")
-    '''
+    #'''
+
+        # Extract training history data
+    history_dict = history.history
+
+    # Plot loss evolution
+    plt.figure(figsize=(10, 4))
+    plt.plot(history_dict['loss'], label='Training Loss')
+    plt.plot(history_dict['val_loss'], label='Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss Evolution')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
     """
 
