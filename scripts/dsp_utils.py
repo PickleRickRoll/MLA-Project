@@ -188,7 +188,7 @@ def vis_cqt(result, sample_rate, hop_length, bins_per_semitone, title, cond=Fals
             bins_per_octave=bins_per_semitone * 12,
         )
         plt.title(title)
-        plt.colorbar(format="%+2.0f dB")
+        #plt.colorbar(format="%+2.0f dB")
         plt.tight_layout()
         plt.show()
 

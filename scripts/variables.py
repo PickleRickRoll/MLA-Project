@@ -29,8 +29,8 @@ project_dir = script_dir.parent
 path_simple_wav = project_dir / "test_data"/ "simple_sounds" / "C_major_scale.wav"
 path_wav = project_dir / "test_data"/  "bassoon1.wav"
 path_midi=project_dir / "test_data"/ "bassoon.mid"
-path_train=project_dir / "test_data"/"X_train"/"bassoon1.wav_clip_2.wav"#be careful of silent clips , they can return problems
-path_ytrain=project_dir / "test_data"/"Y_train"/"bassoon_segment_2.mid"
+path_train=project_dir / "test_data"/"X_train"/"bassoon1.wav_clip_80.wav"#be careful of silent clips , they can return problems
+path_ytrain=project_dir / "test_data"/"Y_train"/"bassoon_segment_80.mid"
 model_path=project_dir / "model"/"model.keras"
 
 raw_dir=project_dir / "test_data"

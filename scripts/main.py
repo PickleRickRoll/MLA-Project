@@ -20,7 +20,7 @@ if __name__ == "__main__":
     Traing Part of the Script
     
     """
-    
+
     '''
     freq_bins1=generate_frequency_bins(int(n_bins/3),sample_rate,int(bins_per_octave/3),f_min)
     freq_bins2=generate_frequency_bins(n_bins,sample_rate,bins_per_octave,f_min)
@@ -117,4 +117,15 @@ if __name__ == "__main__":
     print(f"F-measure: {f_measure:.3f}")
     print(f"F-measure (no offset): {fmeasure_no:.3f}")
     print(f"Frame-level accuracy: {frame_accuracy:.3f}")
+
+    vis_cqt(Yot, sample_rate, hop_size, bins_per_semitone, "Yo ground truth posteriogram", cond=True)
+    vis_cqt(output[0][0], sample_rate, hop_size, bins_per_semitone/3, "Yo estimated posteriogram", cond=True)
+
+    vis_cqt(Ynt, sample_rate, hop_size, bins_per_semitone, "Yn ground truth posteriogram", cond=True)
+    vis_cqt(output[1][0], sample_rate, hop_size, bins_per_semitone/3, "Yn estimated posteriogram", cond=True)
+    
+    vis_cqt(Ypt, sample_rate, hop_size, bins_per_semitone, "Yp ground truth posteriogram", cond=True)
+    vis_cqt(output[2][0], sample_rate, hop_size, bins_per_semitone, "Yp estimated posteriogram", cond=True)
+
+
     #'''
