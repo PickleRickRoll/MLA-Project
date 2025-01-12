@@ -203,7 +203,21 @@ def create_dataset(
     x_train = np.array(x_train)
     #y_train = list(zip(*y_train))
         
+    # Unpack the tuple for each sample in y_train
+    onset_array, activation_array, pitch_array = zip(*y_train)  # Unzips into three separate lists
 
+    # Convert each list to a numpy array to maintain batch dimension
+    onset_array = np.array(onset_array)  # Shape should be be (num_samples, time frames, frequency bins, 1)
+    activation_array = np.array(activation_array) 
+    pitch_array = np.array(pitch_array)  
+
+
+    # Structure y_train as a dictionary or tuple for model training
+    Y_train = {
+    "onset": onset_array,
+    "note": activation_array,
+    "multipitch": pitch_array,
+    }
 
     """
         # Append to dataset
@@ -222,7 +236,7 @@ def create_dataset(
     }
     """
 
-    return x_train, y_train
+    return x_train, Y_train
 
 if __name__=="__main__":
 

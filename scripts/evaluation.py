@@ -4,31 +4,56 @@ import mir_eval as mval
 
 
 
-def mir_eval(Yo, Yp, Yn , sr ):
+def mir_eval(grd_truth,estimated, sr ):
 
-    note_threshold=0.5
-    onset_threshold = 0.5
+    note_threshold=0.2
+    onset_threshold = 0.2
     estimated_notes = []
+    notes=[]
     
-    for f in range(Yo.shape[0]):
-        onsets = np.where(Yo[f] > onset_threshold)[0]
+    Yot,Ynt,Ypt=grd_truth[0],grd_truth[1],grd_truth[2]
+    Yoe,Yne,Ype=estimated[0][0],estimated[1][0],estimated[2][0]
+
+    for f in range(Yoe.shape[1]):  # Iterate over frequency bins
+        onsets = np.where(Yoe[:, f] > onset_threshold)[0]  # Find onsets for this frequency bin
         for onset in onsets:
-            offset = onset + np.argmax(Yn[f, onset:] < note_threshold)
+            offset = onset + np.argmax(Yne[onset:, f] < note_threshold)  # Find the offset
             if offset == onset:
-                offset = len(Yn[f])
-            # Get the frequency
+                offset = Yoe.shape[0]  # Set to the last time frame if no offset is found
+            # Get the frequency for this bin
             freq = librosa.fft_frequencies(sr=sr)[f]
             # Filter out frequencies that are too low
             if freq > 0:  # or some other minimum frequency threshold
                 estimated_notes.append(
                     (
-                        librosa.frames_to_time(onset),
-                        librosa.frames_to_time(offset),
-                        freq,
+                        librosa.frames_to_time(onset, sr=sr),  # Convert onset time
+                        librosa.frames_to_time(offset, sr=sr),  # Convert offset time
+                        freq,  # Frequency of this bin
                     )
                 )
 
-    notes = estimated_notes
+
+    for f in range(Yot.shape[1]):  # Iterate over frequency bins
+        onsets = np.where(Yot[:, f] > onset_threshold)[0]  # Find onsets for this frequency bin
+        for onset in onsets:
+            offset = onset + np.argmax(Ynt[onset:, f] < note_threshold)  # Find the offset
+            if offset == onset:
+                offset = Yot.shape[0]  # Set to the last time frame if no offset is found
+            # Get the frequency for this bin
+            freq = librosa.fft_frequencies(sr=sr)[f]
+            # Filter out frequencies that are too low
+            if freq > 0:  # or some other minimum frequency threshold
+                notes.append(
+                    (
+                        librosa.frames_to_time(onset, sr=sr),  # Convert onset time
+                        librosa.frames_to_time(offset, sr=sr),  # Convert offset time
+                        freq,  # Frequency of this bin
+                    )
+                )
+
+
+
+
 
     # Évaluation avec mir_eval
     ref_intervals = np.array([[start, end] for start, end, _ in notes])
@@ -42,7 +67,6 @@ def mir_eval(Yo, Yp, Yn , sr ):
     pitch_tolerance = 0.25  # quart de ton
     offset_ratio = 0.2  # 20% de la durée de la note
 
-    # F-measure
     precision, recall, f_measure, average_overlap_ratio = (
         mval.transcription.precision_recall_f1_overlap(
             ref_intervals,
